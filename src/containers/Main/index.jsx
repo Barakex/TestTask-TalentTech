@@ -6,8 +6,9 @@ import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
-import { setEmployees, openCreateModal, clearAllEmployees } from './actions';
-import CreateModal from './CreateModal';
+import { setEmployees, clearAllEmployees } from './actions';
+import { isModal, clearModalFields } from '../Modal/actions';
+import Modal from '../Modal';
 
 const useStyles = makeStyles({
   container: {
@@ -63,20 +64,29 @@ const useStyles = makeStyles({
 
 const Main = ({
   /* eslint-disable no-shadow */
-  setEmployees, employees = [], openCreateModal, isCreateModal, clearAllEmployees
+  setEmployees,
+  employees,
+  clearAllEmployees,
+  modalFormFields,
+  isModal,
+  clearModalFields
   /* eslint-enable no-shadow */
 }) => {
   const matches = useMediaQuery('(min-width:750px)');
   const classes = useStyles(matches);
-  const handleCloseModal = () => {
-    openCreateModal(false);
-    setEmployees();
-  };
-  const handleOpenModal = () => {
-    openCreateModal(true);
-  };
+
   const clearEmployees = () => {
     clearAllEmployees();
+  };
+  const submitForm = () => {
+    const addNewEmployee = employees || [];
+    const unicFormsId = modalFormFields;
+    unicFormsId.id = employees && employees.length ? employees.length + 1 : 1;
+    addNewEmployee.push(unicFormsId);
+    const storage = JSON.stringify(addNewEmployee);
+    localStorage.setItem('employees', storage);
+    clearModalFields();
+    setEmployees();
   };
   useEffect(() => {
     setEmployees();
@@ -84,10 +94,8 @@ const Main = ({
 
   return (
     <div className={classes.container}>
-      <CreateModal
-        onClose={handleCloseModal}
-        isOpen={isCreateModal}
-        closeModal={handleCloseModal}
+      <Modal
+        onSubmitForm={submitForm}
       />
       <div className={classes.table}>
         <div className={classes.tHead}>
@@ -104,30 +112,58 @@ const Main = ({
         ))}
       </div>
       <div className={classes.buttons}>
-        <Button className={classes.button} onClick={clearEmployees} variant="contained" color="primary">Очистить</Button>
-        <Button className={classes.button} onClick={handleOpenModal} variant="contained" color="primary">Добавить</Button>
+        <Button
+          disabled={employees.length === 0}
+          className={classes.button}
+          onClick={clearEmployees}
+          variant="contained"
+          color="primary"
+        >
+          Очистить
+        </Button>
+        <Button
+          className={classes.button}
+          onClick={() => isModal(true)}
+          variant="contained"
+          color="primary"
+        >
+          Добавить
+        </Button>
       </div>
-
     </div>
   );
 };
 
 Main.propTypes = {
   setEmployees: PropTypes.func.isRequired,
-  employees: PropTypes.arrayOf(PropTypes.object).isRequired,
-  openCreateModal: PropTypes.func.isRequired,
-  isCreateModal: PropTypes.bool.isRequired,
-  clearAllEmployees: PropTypes.func.isRequired
+  employees: PropTypes.arrayOf(PropTypes.object),
+  clearAllEmployees: PropTypes.func.isRequired,
+  modalFormFields: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    firstName: PropTypes.string,
+    position: PropTypes.string,
+    description: PropTypes.string
+  }).isRequired,
+  isModal: PropTypes.func.isRequired,
+  clearModalFields: PropTypes.func.isRequired
+};
+
+Main.defaultProps = {
+  employees: []
 };
 
 const mapStateToProps = state => ({
   employees: state.MainReducer.employees,
-  isCreateModal: state.MainReducer.isCreateModal
+  isModal: state.MainReducer.isModal,
+  modalFormFields: state.ModalReducer.modalFormFields
 });
 
 const withConnect = connect(
   mapStateToProps,
-  { setEmployees, openCreateModal, clearAllEmployees },
+  {
+    setEmployees, isModal, clearAllEmployees, clearModalFields
+  },
 );
 
 export default compose(withConnect)(Main);
