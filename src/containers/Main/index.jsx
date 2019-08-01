@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 import { setEmployees, clearAllEmployees } from './actions';
 import { isModal, clearModalFields } from '../Modal/actions';
 import Modal from '../Modal';
@@ -39,6 +40,7 @@ const useStyles = makeStyles({
     transition: '0.5s',
     color: 'black',
     textDecoration: 'none',
+    marginTop: 1,
     '&:hover': {
       background: '#e5e5e5'
     }
@@ -59,6 +61,12 @@ const useStyles = makeStyles({
   },
   button: {
     margin: '0 10px'
+  },
+  EmptyField: {
+    textAlign: 'center',
+    marginTop: 16,
+    color: 'rgba(0, 0, 0, 0.54);',
+    fontSize: 18
   }
 });
 
@@ -92,25 +100,49 @@ const Main = ({
     setEmployees();
   }, []);
 
+  const EmptyField = () => (
+    <Typography className={classes.EmptyField}>
+        Список пуст!
+    </Typography>
+  );
+
   return (
     <div className={classes.container}>
       <Modal
         onSubmitForm={submitForm}
       />
+
       <div className={classes.table}>
         <div className={classes.tHead}>
-          <div className={classes.tHeadItem}>Имя</div>
-          <div className={classes.tHeadItem}>Фамилия</div>
-          <div className={classes.tHeadItem}>Должность</div>
+          <div className={classes.tHeadItem}><Typography>Имя</Typography></div>
+          <div className={classes.tHeadItem}><Typography>Фамилия</Typography></div>
+          <div className={classes.tHeadItem}><Typography>Должность</Typography></div>
         </div>
-        {employees && employees.map(item => (
+        { employees.length !== 0 ? employees.map(item => (
           <Link to={`/employee/${item.id}`} key={item.id} className={classes.tBody}>
-            <div className={classes.tBodyItem}>{item.name}</div>
-            <div className={classes.tBodyItem}>{item.firstName}</div>
-            <div className={classes.tBodyItem}>{item.position}</div>
+
+            <div className={classes.tBodyItem}>
+              <Typography>
+                {item.name}
+              </Typography>
+            </div>
+            <div className={classes.tBodyItem}>
+              <Typography>
+                {item.firstName}
+              </Typography>
+            </div>
+            <div className={classes.tBodyItem}>
+              <Typography>
+                {item.position}
+              </Typography>
+            </div>
+
           </Link>
-        ))}
+        ))
+          : <EmptyField />
+        }
       </div>
+
       <div className={classes.buttons}>
         <Button
           disabled={employees.length === 0}
