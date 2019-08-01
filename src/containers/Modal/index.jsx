@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -8,31 +8,40 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
-import { setCreateModalFields } from './actions';
+import { setModalFields, isModal } from './actions';
 
-const CreateModal = ({
+const Modal = ({
   /* eslint-disable no-shadow */
-  isOpen, onClose, setCreateModalFields, createModalFormFields, employees
+  isOpen,
+  setModalFields,
+  modalFormFields,
+  onSubmitForm,
+  isModal,
+  currentObject
   /* eslint-enable no-shadow */
 }) => {
-  const isButtonDisabled = createModalFormFields.name.length === 0;
+  const isButtonDisabled = modalFormFields.name.length === 0;
+  useEffect(() => {
+    setModalFields(currentObject);
+  }, []);
   const handleSubmit = () => {
-    const addeNewEmployee = employees || [];
-    addeNewEmployee.push(createModalFormFields);
-    const storage = JSON.stringify(addeNewEmployee);
-    localStorage.setItem('employees', storage);
-    onClose();
+    onSubmitForm();
+    isModal(false);
   };
   const handleChange = (e) => {
     const fields = {
-      ...createModalFormFields,
-      [e.target.name]: e.target.value,
-      id: employees && employees.length ? employees.length + 1 : 1
+      ...modalFormFields,
+      [e.target.name]: e.target.value
     };
-    setCreateModalFields(fields);
+    setModalFields(fields);
   };
+
+  const closeModal = () => {
+    isModal(false);
+  };
+
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog open={isOpen} onClose={closeModal}>
       <form onSubmit={handleSubmit}>
         <DialogTitle>Создать сотрудника</DialogTitle>
         <DialogContent>
@@ -41,7 +50,7 @@ const CreateModal = ({
             autocomplite="off"
             name="name"
             label="Имя"
-            value={createModalFormFields.name}
+            value={modalFormFields.name}
             margin="normal"
             fullWidth
             onChange={handleChange}
@@ -51,7 +60,7 @@ const CreateModal = ({
             name="firstName"
             label="Фамилия"
             margin="normal"
-            value={createModalFormFields.firstName}
+            value={modalFormFields.firstName}
             fullWidth
             onChange={handleChange}
           />
@@ -60,7 +69,7 @@ const CreateModal = ({
             name="position"
             label="Должность"
             margin="normal"
-            value={createModalFormFields.position}
+            value={modalFormFields.position}
             fullWidth
             onChange={handleChange}
           />
@@ -69,7 +78,7 @@ const CreateModal = ({
             name="description"
             label="Описание"
             margin="normal"
-            value={createModalFormFields.description}
+            value={modalFormFields.description}
             fullWidth
             multiline
             rows="4"
@@ -78,36 +87,55 @@ const CreateModal = ({
         </DialogContent>
         <DialogActions>
           <Button disabled={isButtonDisabled} onClick={handleSubmit} variant="contained" color="primary">Подтвердить</Button>
-          <Button onClick={onClose} variant="contained" color="primary">Закрыть</Button>
+          <Button onClick={closeModal} variant="contained" color="primary">Закрыть</Button>
         </DialogActions>
       </form>
-
     </Dialog>
   );
 };
 
-CreateModal.propTypes = {
+Modal.propTypes = {
+  onSubmitForm: PropTypes.func.isRequired,
   isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  setCreateModalFields: PropTypes.func.isRequired,
-  employees: PropTypes.arrayOf(PropTypes.object).isRequired,
-  createModalFormFields: PropTypes.shape({
+  setModalFields: PropTypes.func.isRequired,
+  modalFormFields: PropTypes.shape({
     id: PropTypes.number,
     name: PropTypes.string,
     firstName: PropTypes.string,
     position: PropTypes.string,
     description: PropTypes.string
-  }).isRequired
+  }).isRequired,
+  currentObject: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    firstName: PropTypes.string,
+    position: PropTypes.string,
+    description: PropTypes.string
+  }),
+  isModal: PropTypes.func.isRequired
+};
+
+Modal.defaultProps = {
+  currentObject: {
+    id: null,
+    name: '',
+    firstName: '',
+    position: '',
+    description: ''
+  }
 };
 
 const mapStateToProps = state => ({
-  createModalFormFields: state.MainReducer.createModalFormFields,
-  employees: state.MainReducer.employees
+  modalFormFields: state.ModalReducer.modalFormFields,
+  employees: state.MainReducer.employees,
+  isOpen: state.ModalReducer.isOpen
 });
 
 const withConnect = connect(
   mapStateToProps,
-  { setCreateModalFields },
+  {
+    setModalFields, isModal
+  },
 );
 
-export default compose(withConnect)(CreateModal);
+export default compose(withConnect)(Modal);
