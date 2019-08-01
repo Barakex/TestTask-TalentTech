@@ -1,7 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = (env, options) => ({
   devtool: options.mode === 'production' ? 'cheap-source-map' : 'eval-sourcemap',
@@ -50,13 +49,17 @@ module.exports = (env, options) => ({
         ]
       },
       {
-        test: /\.(ttf|eot|woff)$/,
+        test: /\.(ttf|eot|woff|ico)$/,
         use: {
           loader: 'file-loader',
           options: {
             name: '[path][name].ext'
           }
         }
+      },
+      {
+        test: /favicon\.ico$/,
+        use: 'file-loader?name=[name].[ext]'
       }
     ]
   },
@@ -64,12 +67,9 @@ module.exports = (env, options) => ({
     new HtmlWebpackPlugin({
       inject: true,
       template: 'build/index.html',
-      title: 'TestTask'
+      title: 'TestTask',
+      favicon: 'src/favicon.ico'
     }),
-    // new CopyWebpackPlugin([{
-    //     from: './src/favicon.ico',
-    //     to: options.mode === './favicon.ico'
-    // }]),
     new MiniCssExtractPlugin({
       filename: './[name].css'
     })
