@@ -1,5 +1,5 @@
 # TestTask-TalentTech
 
-Install: npm i
-Start app: npm run start
-Build: npm run build
+Install: npm i <br />
+Start app: npm run start <br />
+Build: npm run build <br />
